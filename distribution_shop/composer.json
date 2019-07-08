@@ -1,0 +1,43 @@
+{
+    "name": "topthink/think",
+    "description": "the new thinkphp framework",
+    "type": "project",
+    "keywords": [
+        "framework",
+        "thinkphp",
+        "ORM"
+    ],
+    "homepage": "http://thinkphp.cn/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "liu21st",
+            "email": "liu21st@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "topthink/framework": "5.1.*",
+        "firebase/php-jwt": "^4.0",
+        "guzzlehttp/guzzle": "^6.3",
+        "phpoffice/phpexcel": "^1.8",
+        "omnipay/paypal": "~2.0",
+        "lokielse/omnipay-alipay": "^2.0",
+        "lokielse/omnipay-wechatpay": "^1.0",
+        "zoujingli/ip2region": "^1.0",
+        "endroid/qrcode": "^2.3",
+        "lokielse/omnipay-unionpay": "^0.4.1",
+        "gregwar/captcha": "1.*",
+        "zhuzhichao/bank-card-info": "^2.1",
+        "overtrue/wechat": "~4.0"
+    },
+    "extra": {
+        "think-path": "thinkphp"
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+    "require-dev": {
+        "eaglewu/swoole-ide-helper": "dev-master"
+    }
+}
