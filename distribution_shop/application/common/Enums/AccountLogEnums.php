@@ -79,7 +79,7 @@ class AccountLogEnums
 
     const CONVERT_MESSAGE = '%s元奖励金转换积分,手续费%s';
 
-    const DEVELOPMENT_MESSAGE = '每月终生成就奖结算:%s元';
+    const DEVELOPMENT_MESSAGE = '每月终生成就奖结算:%s元,来自于会员编号%s';
 
     const LEADER_MESSAGE = '每月领导奖结算:%s元';
 

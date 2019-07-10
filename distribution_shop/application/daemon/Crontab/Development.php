@@ -12,16 +12,21 @@ use think\console\Input;
 use think\console\Output;
 use think\Db;
 use think\facade\Log;
+use app\dashboard\controller\umbrella\RelationController;
+use app\service\Umbrella\UmRelationService;
 
 class Development extends Command
 {
     protected $server;
     protected $order;
+    protected $m=[];
 
     protected function configure()
     {
         $this->setName('development:settle')->setDescription('每月终生成就奖奖励');
     }
+
+
 
     // 设置命令返回信息
     protected function execute(Input $input, Output $output)
@@ -41,36 +46,40 @@ class Development extends Command
                 return;
             }
             $array = [];
+            $results = [];
             foreach ($res as $item) {
-
-                $parent_ids = Db::name('ds_relation')->where('user_id', $item['user_id'])->column('parent_id');
-                foreach ($parent_ids as $parent_id) {
-                    if (isset($array[$parent_id])) {
-                        $array[$parent_id]['count'] += 1;
-                    } else {
-                        $array[$parent_id]['count'] = 1;
+                //调用递归函数，查询所有的上级id
+                $results =  $this->getUpUser($item['user_id'],$results);
+                foreach($results as $rs){
+                    $isH=Db::name('development_status')->field('user_id')->where('user_id', $rs)->where('expire_date_month', $lastMonth)->find();
+                    if($isH){
+                        array_push($array,$rs);
+                        $insert[] = [
+                            'user_id' => $rs,
+                            'prize_money' => 10,
+                            'money_type' =>AccountLogEnums::MONEY_TYPE_PRIZE,
+                            'change_type' => AccountLogEnums::CHANGE_TYPE_DEVELOPMENT,
+                            'change_desc' => sprintf(AccountLogEnums::DEVELOPMENT_MESSAGE, 10,$item['user_id'])
+                        ];
                     }
                 }
+            }   
+            //暂时写死 不取配置的值
+//          $vipUserCollection = VipUserInfo::getCollectionByUserIds($array, 'user_id,achievement_award');
+            $updateinfo=[];
+            foreach($array as $r){
+                
+                //查询userid现在的余额prize_money
+                if(!array_key_exists($r,$updateinfo)){
+                    $userinfo = Users::getInfoByUserId($r,'user_id,prize_money');
+                    $updateinfo[$r]['prize_money'] =$userinfo['prize_money']+10;
+                }else{
+                    $updateinfo[$r]['prize_money'] =  $updateinfo[$r]['prize_money'] + 10;
+                }
             }
-            $array_keys = array_keys($array);
-
-            $vipUserCollection = VipUserInfo::getCollectionByUserIds($array_keys, 'user_id,achievement_award');
-
-//            Db::startTrans();
-            foreach ($vipUserCollection as $item) {
-                $array[$item['user_id']]['prize_money'] = 'prize_money + ' . $array[$item['user_id']]['count'] * $item['achievement_award'];
-                $insert[] = [
-                    'user_id' => $item['user_id'],
-                    'prize_money' => $array[$item['user_id']]['count'] * $item['achievement_award'],
-                    'change_type' => AccountLogEnums::CHANGE_TYPE_DEVELOPMENT,
-                    'change_desc' => sprintf(AccountLogEnums::DEVELOPMENT_MESSAGE, $array[$item['user_id']]['count'] * $item['achievement_award'])
-                ];
-                unset($array[$item['user_id']]['count']);
-            }
-
             Db::startTrans();
             try {
-                Users::batchUpdate($array, 'user_id');
+                Users::batchUpdate($updateinfo, 'user_id');
                 $accountLog = new AccountLog();
                 $accountLog->insertAll($insert);
                 Db::commit();
@@ -84,9 +93,21 @@ class Development extends Command
             echo $exception->getLine();
         }
 
+    
 
         Log::info("---每月终生成就奖奖励结算结束---");
     }
+
+        //递归查询 查询4级以上人员 传入第三级userid;
+        public function getUpUser($userid,&$result)
+        {
+            $temp_ids = Db::name('ds_relation')->where('user_id', $userid)->order('level')->column('parent_id');
+            if(count($temp_ids) === 3){
+                return $this->getUpUser($temp_ids[2],$temp_ids);
+            }else{
+                return array_merge($result,$temp_ids);
+            }
+        }
 
 
 }

@@ -187,17 +187,23 @@ class Payment extends Load
                 ->where('order_id', $order_info['order_id'])
                 ->select()->toArray();
 
-            $vip_goods_info = [];
-
+            $pt_goods_info = []; //普通商品
+            $vip_goods_info = [];//会员商品
             foreach ($orderGoods as $row) {
-                $vip_goods_info[$row['sup_id']] = $row['vs_id'];
+                if($row['vs_id'] <= 0)
+                {
+                    $pt_goods_info[$row['sup_id']] = $row['vs_id'];
+                }else
+                {
+                    $vip_goods_info[$row['sup_id']] = $row['vs_id'];
+                }
             }
 
             if (!$user['is_vip']) {
                 VipUserInfoService::service()->beVip($vip_goods_info, $order_info['user_id']);
             }
-
-            if ($vip_goods_info) {
+            //只有会员且购买了普通商品才可领领导奖
+            if ($user['is_vip']&&$pt_goods_info) {
                 LeaderStatusService::service()->initLeadStatus($order_info['user_id'], $order_id, current(array_keys($vip_goods_info)));
             }
 

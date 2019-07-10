@@ -219,9 +219,10 @@ class PaymentController extends ApiController
 
                 if (!$this->is_vip) {
                     VipUserInfoService::service()->beVip($goods_list['vip_goods_info'], $this->data['user_id']);
+                }else if($goods_list['pt_goods_info'])
+                {
+                    DevelopmentStatusService::service()->initLeadStatus($this->data['user_id'], $new_order_id);
                 }
-                DevelopmentStatusService::service()->initLeadStatus($this->data['user_id'], $new_order_id);
-
             } else {
                 /*  记录在线支付订单操作记录  */
 //                $this->payment->insert_pay_log($new_order_id, $pay_money, code::PAY_ORDER);

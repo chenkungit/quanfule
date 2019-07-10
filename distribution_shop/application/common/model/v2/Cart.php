@@ -161,7 +161,8 @@ class Cart extends Load
             abort(404, '商品不存在');
         }
 
-        $sendaddress_arr['vip_goods_info'] = [];
+        $sendaddress_arr['vip_goods_info'] = [];//会员商品信息
+        $sendaddress_arr['pt_goods_info'] = [];//普通商品信息
         $sendaddress_arr['goods_total'] = 0; //商品总价
         $sendaddress_arr['vip_goods_total'] = 0; //vip商品总价
         $sendaddress_arr['all_fav'] = [];
@@ -228,6 +229,8 @@ class Cart extends Load
                 if ($row['vs_id']) {
                     $sendaddress_arr['vip_goods_info'][$row['sup_id']] = $row['vs_id'];
                     $sendaddress_arr['vip_goods_total'] += $arr[$key]['goods_total'];
+                }else{
+                    $sendaddress_arr['pt_goods_info'][$row['sup_id']] = $row['vs_id'];
                 }
 
                 $arr[$key]['subtotal'] = $arr[$key]['goods_total'];
