@@ -216,7 +216,7 @@ class PaymentController extends ApiController
                     ->setUserMoney(-$order_amount)
                     ->change();
                 //添加业绩
-                DevelopmentStatusService::service()->setAchieveToUpUsers($this->data['user_id'],$$goods_list['vip_goods_total']);
+                DevelopmentStatusService::service()->setAchieveToUpUsers($this->data['user_id'],$goods_list['vip_goods_total']);
                 if (!$this->is_vip) {
                     VipUserInfoService::service()->beVip($goods_list['vip_goods_info'], $this->data['user_id']);
                 }else if($goods_list['pt_goods_info'])

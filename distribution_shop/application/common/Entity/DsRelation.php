@@ -40,7 +40,7 @@ class DsRelation extends BaseModel
         Db::startTrans();
         try {
             foreach($userids as $user_id){
-                Db::table('ecs_ds_relation')->where(['user_id'=>$user_id,'level'=>1])->update(['current_achieve'=>Db::row('current_achieve+'.$achieve)]);
+                Db::table('ecs_ds_relation')->where(['user_id'=>$user_id,'level'=>1])->update(['current_achieve'=>Db::raw('current_achieve+'.$achieve)]);
             }
             Db::commit();
         }catch (\Exception $e) {
