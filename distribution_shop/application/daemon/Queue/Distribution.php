@@ -56,10 +56,14 @@ class Distribution extends Command
 
                 $orderInfo = OrderInfo::getInfoByOrderId($orderId);
 
-                $amount = $orderInfo->goods_amount;
+                $amount = $orderInfo->vip_goods_amount;
 
                 if ($orderInfo->is_deal == 1) {
                     Log::info($orderInfo->order_sn . '该订单已经处理过了');
+                    return;
+                }
+                if($amount <= 0){
+                    Log::info($orderInfo->order_sn . '该订单非会员商品');
                     return;
                 }
                 Log::info("---订单:" . $orderInfo->order_sn . "开始---");

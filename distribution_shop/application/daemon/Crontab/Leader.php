@@ -85,7 +85,6 @@ class Leader extends Command
                     ];
                 }
             }
-
             Db::startTrans();
             try {
                 Users::batchUpdate($update, 'user_id');

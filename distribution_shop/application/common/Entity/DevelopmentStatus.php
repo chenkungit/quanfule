@@ -21,6 +21,4 @@ class DevelopmentStatus extends BaseModel
     {
         static::where('expire_date', '>=', date('Y-m-d'))->where('user_id', $user_id)->find();
     }
-
-//    public function
 }

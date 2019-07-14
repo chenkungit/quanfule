@@ -144,9 +144,9 @@ return array (
     'primary' => false,
     'autoinc' => false,
   ),
-  'is_h' => 
+  'is_huacai' => 
   array (
-    'name' => 'is_h',
+    'name' => 'is_huacai',
     'type' => 'int(2)',
     'notnull' => false,
     'default' => NULL,

@@ -215,8 +215,8 @@ class PaymentController extends ApiController
                     ->setUserId($this->data['user_id'])
                     ->setUserMoney(-$order_amount)
                     ->change();
-                //成为会员  上下级关系在队列中设置
-
+                //添加业绩
+                DevelopmentStatusService::service()->setAchieveToUpUsers($this->data['user_id'],$$goods_list['vip_goods_total']);
                 if (!$this->is_vip) {
                     VipUserInfoService::service()->beVip($goods_list['vip_goods_info'], $this->data['user_id']);
                 }else if($goods_list['pt_goods_info'])

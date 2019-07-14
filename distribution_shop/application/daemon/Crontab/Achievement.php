@@ -1,7 +1,7 @@
 <?php
 
 namespace app\daemon\Crontab;
-
+use app\common\Entity\AccountLog;
 use app\common\Enums\AccountLogEnums;
 use app\service\Member\AccountService;
 use app\service\Vip\VipUserInfoService;
@@ -26,130 +26,70 @@ class Achievement extends Command
     {
         Log::info("---每日业绩奖结算开始---");
 
-
-        //先获取昨天所有伞流水的 parent_id 在遍历计算
-        $yesterdayDate = date("Y-m-d", strtotime("-1 day"));
-        $dateMonth = date("Y-m", strtotime("-1 day"));
-        $parent_ids = Db::name('umbrella_order_flow')->distinct('parent_id')
-            ->where('date', $yesterdayDate)
-            ->where('status', 0)
-            ->column('parent_id');
-
-
-        if (!$parent_ids) {
-            Log::info("---昨日无流水---");
+        //查询所有有至少直接分支的节点（只有2个分支以上才有业绩奖励）
+        $achieveUsers = Db::table('ecs_ds_relation')->field('parent_id')->where('level',1)->group('parent_id')->having('count(parent_id)>=2')->select();
+        if (!$achieveUsers) {
+            Log::info("---没有满足条件的人员---");
             return;
         }
 
         try {
-            foreach ($parent_ids as $parent_id) {
-                echo "执行" . $parent_id . '的业绩奖计算' . PHP_EOL;
-                $remark = '';
-                //获取该会员所有伞下分支的大数据  先拿到最下级的会员 通过这个会员获取这条直线的所有会员
-                $downUserCollection = Db::table('ecs_um_relation a1')
-                    ->field('a1.user_id,a1.level')
-                    ->leftJoin('ecs_um_relation a2', 'a1.user_id = a2.parent_id')
-                    ->where('a1.parent_id', $parent_id)
-                    ->where('a2.user_id', null)
-                    ->select();
+            foreach($achieveUsers as $user){
+                //查询此人线下一级人员信息
+                $subInfo = Db::table('ecs_ds_relation')->field('id,current_achieve')->where('level =1 and current_achieve > 0 and parent_id = '.$user['parent_id'])->select();
+                //如果有两个分支则执行碰撞操作
+                Db::startTrans();
+                try{
+                    if(count($subInfo)>=2) {
+                        //获取业绩奖励比例及用户信息
+                        $vipInfo = Db::table('ecs_vip_user_info')->alias('u')->field('v.capping_rate as capping_rate,v.capping_price as capping_price,u.user_id as user_id')
+                                    ->leftJoin('ecs_vip_setting v','v.id = u.vs_id')
+                                    ->where('u.user_id',$user['parent_id'])
+                                    ->find();
+                        if($vipInfo){
+                            //业绩奖励金额
+                            $achieve = $subInfo[0]['current_achieve'] >= $subInfo[1]['current_achieve'] ? $subInfo[1]['current_achieve'] : $subInfo[0]['current_achieve'];
+                            //执行碰撞
+                            $subInfo[0]['current_achieve'] = $subInfo[0]['current_achieve'] - $achieve;
+                            $subInfo[1]['current_achieve'] = $subInfo[1]['current_achieve'] - $achieve;
+                            //超封顶则按封顶
+                            $achieve_price = $achieve*$vipInfo['capping_rate'] <= $vipInfo['capping_price'] ? $achieve*$vipInfo['capping_rate'] : $vipInfo['capping_price'];
+                             //放入业绩奖励流水表
+                            $achieveFlow = [
+                                'user_id' => $user['parent_id'],
+                                'prize_amount' => $achieve_price,
+                                'date_month' =>date("Y-m"),
+                                'date' => date('Y-m-d'),
+                                'remark' => sprintf(AccountLogEnums::ACHIEVEMENT_MESSAGE, $achieve_price,$subInfo[0]['current_achieve']+$achieve,$subInfo[1]['current_achieve']+$achieve,$achieve)
+                            ];
 
-                $amount_array = [];
-                //所有伞的最底层会员  统计所有线的流水  获取流水第二的分支
-                foreach ($downUserCollection as $downUserInfo) {
-                    //先将最底层会员塞入数组
-                    $umbrellaUIds = [$downUserInfo['user_id']];
-
-                    //是第一级的话则无上级
-                    if ($downUserInfo['level'] == 1) {
-
-                        $amount = Db::table('ecs_umbrella_order_flow')
-                            ->whereIn('user_id', $umbrellaUIds)
-                            ->where('parent_id', $parent_id)
-                            ->sum('amount');
-
-                        if ($amount > 0) {
-//                            $amount_array[] = $amount;
-                            $amount_array[] = ['amount' => $amount, 'umbrellaUids' => $umbrellaUIds];
-                            $remark .= "伞下" . implode(',', $umbrellaUIds) . '流水为' . $amount . PHP_EOL;
-                            echo "伞下" . implode(',', $umbrellaUIds) . '流水为' . $amount . PHP_EOL;
-                        }
-                    } else {
-
-                        //不是最下级 则获取该下级的所有上级 排除 最高级  则是这条线的所有的伞下会员
-                        $down_parent_ids = Db::table('ecs_um_relation')->where('user_id', $downUserInfo['user_id'])->order('level desc')->column('parent_id');
-
-                        unset($down_parent_ids[array_search($parent_id, $down_parent_ids)]);
-                        $umbrellaUIds = array_merge($umbrellaUIds, $down_parent_ids);
-
-                        $amount = Db::table('ecs_umbrella_order_flow')
-                            ->whereIn('user_id', $umbrellaUIds)
-                            ->where('parent_id', $parent_id)
-                            ->sum('amount');
-
-                        if ($amount > 0) {
-                            $amount_array[] = ['amount' => $amount, 'umbrellaUids' => $umbrellaUIds];
-                            $remark .= "伞下" . implode(',', $umbrellaUIds) . '流水为' . $amount . PHP_EOL;
-                            echo "伞下" . implode(',', $umbrellaUIds) . '流水为' . $amount . PHP_EOL;
+                            //奖励日志
+                            $insert = [
+                                'user_id' => $user['parent_id'],
+                                'prize_money' => $achieve_price,
+                                'money_type' =>AccountLogEnums::MONEY_TYPE_PRIZE,
+                                'change_type' => AccountLogEnums::CHANGE_TYPE_ACHIEVEMENT_AWARD,
+                                'change_desc' => sprintf(AccountLogEnums::ACHIEVEMENT_MESSAGE, $achieve_price,$subInfo[0]['current_achieve']+$achieve,$subInfo[1]['current_achieve']+$achieve,$achieve)
+                            ];
+                            print_r($insert);
+                            print_r($achieveFlow);
+                            $accountLog = new AccountLog();
+                            $accountLog->insert($insert);
+                            Db::table('ecs_achievement_flow')->insert($achieveFlow);
+                            Db::table('ecs_ds_relation')->update($subInfo[0]);
+                            Db::table('ecs_ds_relation')->update($subInfo[1]);
                         }
                     }
-                }
-                if (count($amount_array) < 2) {
-                    Db::name('umbrella_order_flow')->where('date', $yesterdayDate)->where('parent_id', $parent_id)->update(['status' => 1]);
-                    echo "该会员:" . $parent_id . "伞下有效流水少于2条" . PHP_EOL;
-                    Log::info("该会员:" . $parent_id . "伞下有效流水少于2条");
-                    continue;
-                }
-                //排序 获取第二大流水的伞
-                $amounts = array_column($amount_array, 'amount');
-                array_multisort($amount_array, SORT_DESC, $amounts);
-
-                $yesterday_amount = Db::table('ecs_umbrella_order_flow')
-                    ->whereIn('user_id', $amount_array[1]['umbrellaUids'])
-                    ->where('parent_id', $parent_id)
-                    ->where('date', $yesterdayDate)
-                    ->sum('amount');
-                if ($yesterday_amount <= 0) {
-                    Db::name('umbrella_order_flow')->where('date', $yesterdayDate)->where('parent_id', $parent_id)->update(['status' => 1]);
-                    echo "该会员:" . $parent_id . "昨日流水" . $yesterday_amount;
-                    Log::info("该会员:" . $parent_id . "昨日流水" . $yesterday_amount);
-                    continue;
-                }
-                //统计到所有伞下金额 去除0后获取第二大流水 * 10%
-
-                $vipUserInfo = VipUserInfoService::service()->getInfo($parent_id);
-
-                $second_amount = $yesterday_amount * $vipUserInfo['capping_rate'];
-
-                if ($second_amount < $vipUserInfo['capping_price']) {
-                    $prize_amount = $second_amount;
-                } else {
-                    $prize_amount = $vipUserInfo['capping_price'];
-                }
-
-                Db::startTrans();
-                try {
-                    Db::table('ecs_achievement_flow')->insert(['user_id' => $parent_id, 'prize_amount' => $prize_amount, 'date' => $yesterdayDate, 'date_month' => $dateMonth, 'remark' => $remark]);
-
-                    AccountService::service()
-                        ->setUserId($parent_id)
-                        ->setChangeDesc(sprintf(AccountLogEnums::ACHIEVEMENT_MESSAGE, $prize_amount))
-                        ->setChangeType(AccountLogEnums::CHANGE_TYPE_ACHIEVEMENT_AWARD)
-                        ->setPrizeMoney($prize_amount)
-                        ->change();
-
-                    Db::name('umbrella_order_flow')->where('date', $yesterdayDate)->where('parent_id', $parent_id)->update(['status' => 1]);
                     Db::commit();
-                } catch (\Exception $exception) {
+                }catch (\Exception $exception) {
                     Db::rollback();
-                    Log::error($parent_id . '更新出错');
-                    Log::error($exception->getMessage());
-                    break;
+                    throw $exception;
                 }
+
             }
 
         } catch (\Exception $exception) {
             Log::error($exception->getMessage());
-            echo $parent_id . PHP_EOL;
             echo $exception->getMessage() . PHP_EOL;
             echo $exception->getLine();
         }

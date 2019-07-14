@@ -27,6 +27,7 @@ class DsRelationService extends BaseService
                 ];
             }
         }
+        /*删除默认为顶级的关系数据 */
         $dsRelation = new DsRelation();
         $dsRelation->saveAll($set);
     }

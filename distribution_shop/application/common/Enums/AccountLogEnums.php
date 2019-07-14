@@ -75,7 +75,7 @@ class AccountLogEnums
 
     const REBATE_MESSAGE = '订单%s,%s级返佣获利%s';
 
-    const ACHIEVEMENT_MESSAGE = '每日业绩奖结算:%s元';
+    const ACHIEVEMENT_MESSAGE = '每日业绩奖结算:%s元;分支A业绩:%s元,分支B业绩:%s元,碰撞金额:%s元';
 
     const CONVERT_MESSAGE = '%s元奖励金转换积分,手续费%s';
 

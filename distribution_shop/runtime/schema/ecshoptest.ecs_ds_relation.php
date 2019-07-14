@@ -36,6 +36,15 @@ return array (
     'primary' => false,
     'autoinc' => false,
   ),
+  'current_achieve' => 
+  array (
+    'name' => 'current_achieve',
+    'type' => 'decimal(10,2)',
+    'notnull' => false,
+    'default' => '0.00',
+    'primary' => false,
+    'autoinc' => false,
+  ),
   'created_time' => 
   array (
     'name' => 'created_time',

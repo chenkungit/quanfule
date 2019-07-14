@@ -4,7 +4,7 @@ namespace app\api\controller\v1;
 
 use app\api\validate\AuthValidate;
 use app\common\controller\ApiController;
-
+use app\common\Entity\DsRelation;
 use app\common\Enums\RedisKeyEnums;
 use app\common\Utils\Token;
 use app\service\CaptchaService;
@@ -87,7 +87,8 @@ class AuthController extends ApiController
             $token = $this->redis_store($this->generateToken($this->data['mobile']), $user_id, $this->data['mobile']);
             /*返回个人信息*/
             $info = $this->users->user_info($user_id);
-
+            /*注册默认添加一条关系记录，parent_id为0 */
+            //Db::execute('insert into ecs_ds_relation (user_id, parent_id,level,current_achieve) values (?,?,?,?)',[$user_id,0,0,0]);
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();

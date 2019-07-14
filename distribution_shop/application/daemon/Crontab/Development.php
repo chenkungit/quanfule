@@ -5,6 +5,7 @@ namespace app\daemon\Crontab;
 
 use app\common\Entity\AccountLog;
 use app\common\Entity\Users;
+use app\common\Entity\DsRelation;
 use app\common\Entity\VipUserInfo;
 use app\common\Enums\AccountLogEnums;
 use think\console\Command;
@@ -47,9 +48,11 @@ class Development extends Command
             }
             $array = [];
             $results = [];
+            $dsRelation = new DsRelation();
             foreach ($res as $item) {
                 //调用递归函数，查询所有的上级id
-                $results =  $this->getUpUser($item['user_id'],$results);
+                $results =  $dsRelation->getUpUser($item['user_id'],$results);
+                print_r($results);
                 foreach($results as $rs){
                     $isH=Db::name('development_status')->field('user_id')->where('user_id', $rs)->where('expire_date_month', $lastMonth)->find();
                     if($isH){
@@ -97,17 +100,5 @@ class Development extends Command
 
         Log::info("---每月终生成就奖奖励结算结束---");
     }
-
-        //递归查询 查询4级以上人员 传入第三级userid;
-        public function getUpUser($userid,&$result)
-        {
-            $temp_ids = Db::name('ds_relation')->where('user_id', $userid)->order('level')->column('parent_id');
-            if(count($temp_ids) === 3){
-                return $this->getUpUser($temp_ids[2],$temp_ids);
-            }else{
-                return array_merge($result,$temp_ids);
-            }
-        }
-
 
 }
