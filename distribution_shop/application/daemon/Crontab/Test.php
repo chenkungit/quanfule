@@ -5,9 +5,15 @@ namespace app\daemon\Crontab;
 
 use app\common\Entity\AccountLog;
 use app\common\Entity\Users;
-use app\common\Entity\DsRelation;
+use app\common\Entity\SystemSetting;
 use app\common\Entity\VipUserInfo;
 use app\common\Enums\AccountLogEnums;
+use app\service\Member\AccountService;
+use app\common\Enums\SystemSettingEnums;
+use app\service\System\SystemSettingService;
+use app\service\Development\DevelopmentStatusService;
+use app\common\Entity\DsRelation;
+use app\common\Enums\RedisKeyEnums;
 use think\console\Command;
 use think\console\Input;
 use think\console\Output;
@@ -33,13 +39,19 @@ class Test extends Command
     protected function execute(Input $input, Output $output)
     {
 
-        try {
-            $userids = [7,6,1,3];
-            $achieve = 21;
-
-            foreach($userids as $user_id){
-                Db::table('ecs_ds_relation')->where(['user_id'=>$user_id,'level'=>1])->update(['current_achieve'=>Db::raw('current_achieve+'.$achieve)]);
+    try {
+            $dsRelation = new DsRelation();
+            //获取所有上级人员
+            $user_id = 25;
+            $results = [];
+            $results =  $dsRelation->getUpUser($user_id,$results);
+            print_r($results);
+            if($results){
+                //添加自己构建完整链
+                array_push($results,$user_id);
             }
+            $dsRelation->updateAchieveByUser($results,998);
+
         } catch (\Exception $exception) {
             Log::error($exception->getMessage());
             echo $exception->getMessage() . PHP_EOL;

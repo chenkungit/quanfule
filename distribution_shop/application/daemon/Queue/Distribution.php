@@ -68,19 +68,16 @@ class Distribution extends Command
                 }
                 Log::info("---订单:" . $orderInfo->order_sn . "开始---");
 
-                $vipUserInfo = VipUserInfoService::service()->getInfo($orderInfo->user_id);
-                if (!$vipUserInfo) {
-                    $orderInfo->is_deal = 1;
-                    $orderInfo->save();
-                    Log::info($orderInfo->user_id . '该用户无会员信息');
-                    return;
-                }
+                // $vipUserInfo = VipUserInfoService::service()->getInfo($orderInfo->user_id);
+                // if (!$vipUserInfo) {
+                //     $orderInfo->is_deal = 1;
+                //     $orderInfo->save();
+                //     Log::info($orderInfo->user_id . '该用户无会员信息');
+                //     return;
+                // }
 
-                $first_reback_rate = $vipUserInfo['first_reback_rate'];
-                $second_reback_rate = $vipUserInfo['second_reback_rate'];
-                $third_reback_rate = $vipUserInfo['third_reback_rate'];
-
-                $dsRelation = DsRelation::getCollectionByUserId($orderInfo->user_id, 3, 'parent_id,level');
+                //$dsRelation = DsRelation::getCollectionByUserId($orderInfo->user_id, 3, 'parent_id,level');
+                $dsRelation = DsRelation::getCollectionVipInfoByUserId($orderInfo->user_id, 3);
 
                 if (!$dsRelation) {
                     $orderInfo->is_deal = 1;
@@ -97,13 +94,13 @@ class Distribution extends Command
 
                     switch ($item['level']) {
                         case 1:
-                            $prize_money = $amount * $first_reback_rate;
+                            $prize_money = $amount * $item['first_reback_rate'];
                             break;
                         case 2:
-                            $prize_money = $amount * $second_reback_rate;
+                            $prize_money = $amount * $item['second_reback_rate'];
                             break;
                         case 3:
-                            $prize_money = $amount * $third_reback_rate;
+                            $prize_money = $amount * $item['third_reback_rate'];
                             break;
                     }
 

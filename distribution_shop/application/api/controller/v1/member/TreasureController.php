@@ -10,6 +10,7 @@ use app\common\controller\ApiController;
 use app\common\Entity\UmRelation;
 use app\common\Entity\Users;
 use app\common\Enums\AccountLogEnums;
+use app\common\Enums\SystemSettingEnums;
 use app\service\Member\AccountService;
 use app\service\Member\MemberCardInfoService;
 use app\service\Member\MemberService;
@@ -132,7 +133,7 @@ class TreasureController extends ApiController
         $treasureInfo = MemberService::service()->getTreasure($this->data['user_id']);
 
         $in_point = $this->data['money'];
-        $service_charge = $in_point * SystemSettingService::service()->getTransferServiceChargeRate();
+        $service_charge = $in_point * SystemSettingService::service()->getSystemFromRedis(SystemSettingEnums::CONVERT_SERVICE_CHARGE_RATE);
         $out_point = $this->data['money'] + $service_charge;
 
         if ($treasureInfo['prize_money'] < $out_point) {

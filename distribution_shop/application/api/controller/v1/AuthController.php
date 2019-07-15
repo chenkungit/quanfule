@@ -88,7 +88,7 @@ class AuthController extends ApiController
             /*返回个人信息*/
             $info = $this->users->user_info($user_id);
             /*注册默认添加一条关系记录，parent_id为0 */
-            //Db::execute('insert into ecs_ds_relation (user_id, parent_id,level,current_achieve) values (?,?,?,?)',[$user_id,0,0,0]);
+            Db::execute('insert into ecs_ds_relation (user_id, parent_id,level,current_achieve) values (?,?,?,?)',[$user_id,0,0,0]);
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();

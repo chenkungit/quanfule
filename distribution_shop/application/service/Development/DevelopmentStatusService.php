@@ -34,14 +34,17 @@ class DevelopmentStatusService extends BaseService
         $leaderStatus->save();
     }
     /**
-     * 为所有上级添加业绩（包括本人）
+     * 为所有上级添加业绩
      */
     public function setAchieveToUpUsers($user_id,$vip_goods_total){
         $dsRelation = new DsRelation();
         //获取所有上级人员
+        $results = [];
         $results =  $dsRelation->getUpUser($user_id,$results);
-        //添加自己构建完整链
-        array_push($results,$user_id);
-        $dsRelation->updateAchieveByUser($results,$vip_goods_total);
+        if($results){
+            //添加自己构建完整链
+            array_push($results,$user_id);
+            $dsRelation->updateAchieveByUser($results,$vip_goods_total);
+        }
     }
 }
