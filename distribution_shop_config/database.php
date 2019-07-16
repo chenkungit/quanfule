@@ -12,13 +12,13 @@
 return [
     // 数据库类型
     'type' => 'mysql',
-    'hostname' => '154.209.245.95',
+    'hostname' => '192.168.169.95',
     // 数据库名
     'database' => 'ecshoptest',
 
     'username' => 'root',
 
-    'password' => 'quanlefu@root',
+    'password' => 'root',
     // 端口
     'hostport' => '',
     // 连接dsn
