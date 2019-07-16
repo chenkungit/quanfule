@@ -18,7 +18,7 @@ return [
 
     'username' => 'root',
 
-    'password' => '0yzwnmis',
+    'password' => 'quanlefu@root',
     // 端口
     'hostport' => '',
     // 连接dsn

@@ -27,4 +27,8 @@ class OrderInfo extends BaseModel
     {
         return static::field($fields)->where('order_id', $orderId)->find();
     }
+    public static function getNotDealOrder($fields = '*')
+    {
+        return static::field($fields)->where('is_deal', 0)->select();
+    }
 }

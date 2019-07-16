@@ -42,7 +42,7 @@ class Test extends Command
     try {
             $dsRelation = new DsRelation();
             //获取所有上级人员
-            $user_id = 25;
+            $user_id = 20;
             $results = [];
             $results =  $dsRelation->getUpUser($user_id,$results);
             print_r($results);
@@ -50,7 +50,7 @@ class Test extends Command
                 //添加自己构建完整链
                 array_push($results,$user_id);
             }
-            $dsRelation->updateAchieveByUser($results,998);
+            $dsRelation->updateAchieveByUser($results,9980);
 
         } catch (\Exception $exception) {
             Log::error($exception->getMessage());

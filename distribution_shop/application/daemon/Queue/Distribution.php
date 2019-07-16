@@ -49,9 +49,11 @@ class Distribution extends Command
                 }
 
                 $data = redis()->brPop([RedisKeyEnums::DISTRIBUTION_QUEUE], 1);
+                print_r($data);
                 if (!$data) {
                     continue;
                 }
+                
                 list($queue, $orderId) = $data;
 
                 $orderInfo = OrderInfo::getInfoByOrderId($orderId);
@@ -152,9 +154,9 @@ class Distribution extends Command
                 break;
             }
             unset($set);
-        }
 
     }
 
 
+  }
 }
