@@ -1,0 +1,47 @@
+html, body, ul, ol, li, dl, dd, dt, p, h1, h2, h3, h4, h5, h6, form, img {
+  margin: 0;
+  padding: 0; }
+
+img {
+  border: 0;
+  display: block;
+  height: inherit;
+ }
+input{-webkit-appearance: none;}
+
+ul, ol, li {
+  list-style: none; }
+
+a {
+  color: #666;
+  text-decoration: none;
+  }
+
+html{
+	font-family:"微软雅黑";
+  color: #3e3e3e;
+	font-size: 100px;
+}
+body{
+	font-size: .3rem;
+}
+.color7{
+  color: #FF0036;
+}
+@font-face {
+  font-family: 'iconfont';
+  src: url('../fonts/iconfont.eot');
+  src: url('../fonts/iconfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/iconfont.woff') format('woff'),
+  url('../fonts/iconfont.ttf') format('truetype'),
+  url('../fonts/iconfont.svg#iconfont') format('svg');
+}
+
+
+.iconfont{
+  font-family:"iconfont" !important;
+  font-style:normal;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-stroke-width: 0.2px;
+  -moz-osx-font-smoothing: grayscale;
+}
