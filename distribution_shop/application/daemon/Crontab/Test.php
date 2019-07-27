@@ -40,17 +40,13 @@ class Test extends Command
     {
 
     try {
-            $dsRelation = new DsRelation();
-            //获取所有上级人员
-            $user_id = 20;
-            $results = [];
-            $results =  $dsRelation->getUpUser($user_id,$results);
-            print_r($results);
-            if($results){
-                //添加自己构建完整链
-                array_push($results,$user_id);
-            }
-            $dsRelation->updateAchieveByUser($results,9980);
+            //更新余额信息
+        $money  = 1;
+        Db::table('ecs_users')
+        ->where('user_id', 37)
+        ->update([
+            'prize_money'  => Db::raw('prize_money+'.$money)
+        ]);
 
         } catch (\Exception $exception) {
             Log::error($exception->getMessage());

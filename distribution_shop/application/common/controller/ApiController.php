@@ -272,7 +272,7 @@ class ApiController extends Controller
 //        $smsCheckCode['sms_code'] = 111111;
 //        $smsCheckCode['ttl'] = 111111;
         //万能验证码
-        if($sms_code === '123456'){
+        if($sms_code === '000000'){
             return true;
         }       
 

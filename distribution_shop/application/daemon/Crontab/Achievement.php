@@ -2,6 +2,7 @@
 
 namespace app\daemon\Crontab;
 use app\common\Entity\AccountLog;
+use app\common\Entity\Users;
 use app\common\Enums\AccountLogEnums;
 use app\service\Member\AccountService;
 use app\service\Vip\VipUserInfoService;
@@ -71,13 +72,17 @@ class Achievement extends Command
                                 'change_type' => AccountLogEnums::CHANGE_TYPE_ACHIEVEMENT_AWARD,
                                 'change_desc' => sprintf(AccountLogEnums::ACHIEVEMENT_MESSAGE, $achieve_price,$subInfo[0]['current_achieve']+$achieve,$subInfo[1]['current_achieve']+$achieve,$achieve)
                             ];
-                            print_r($insert);
-                            print_r($achieveFlow);
                             $accountLog = new AccountLog();
                             $accountLog->insert($insert);
                             Db::table('ecs_achievement_flow')->insert($achieveFlow);
                             Db::table('ecs_ds_relation')->update($subInfo[0]);
                             Db::table('ecs_ds_relation')->update($subInfo[1]);
+                            //更新余额信息
+                            Db::table('ecs_users')
+                            ->where('user_id', $user['parent_id'])
+                            ->update([
+                                'prize_money'  => Db::raw('prize_money+'.$achieve_price)
+                            ]);
                         }
                     }
                     Db::commit();
