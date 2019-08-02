@@ -222,6 +222,7 @@
             this.categoryOptions = data.data.argument.category;
             this.vs_idOptions = data.data.argument.vip_setting;
             this.vs_idOptions.unshift({label:'普通商品',value:0})
+            this.vs_idOptions.unshift({label:'平价商品',value:-1})
           },
           handleSupplier(val){
             if(this.category.length>0){
