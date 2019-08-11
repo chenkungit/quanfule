@@ -127,7 +127,7 @@ class GoodsController extends WebController
 //                'tbsm' => empty($this->data['tbsm']) ? '' : trim($this->data['tbsm']),
 //                'code' => empty($this->data['code']) ? '' : trim($this->data['code']),
                 'ord' => intval($this->data['ord']),
-                'category' => empty($this->data['category']) ? 0 : intval($this->data['category']),
+                'category' => empty($this->data['category'][0]) ? 0 : intval($this->data['category'][0]),
                 'vs_id' => empty($this->data['vs_id']) ? 0 : intval($this->data['vs_id']),
 //                'brand' => empty($this->data['brand']) ? 0 : intval($this->data['brand']),
 //                'supplier' => empty($this->data['supplier']) ? 0 : intval($this->data['supplier']),
