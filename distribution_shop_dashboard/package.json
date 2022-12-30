@@ -16,7 +16,7 @@
     "element-ui": "^2.10.0",
     "font-awesome": "^4.7.0",
     "jsbarcode": "^3.8.0",
-    "json2csv": "^3.11.5",
+    "json2csv": "^5.0.7",
     "screenfull": "^3.3.2",
     "video.js": "^7.1.0",
     "videojs-contrib-hls": "^5.14.1",
